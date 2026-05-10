@@ -5,20 +5,24 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 font-sans antialiased;
+    @apply bg-cream text-brand font-sans antialiased;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-brand text-white px-6 py-2.5 rounded-lg font-medium text-sm
-           hover:bg-brand-light transition-colors duration-150 inline-block;
+    @apply bg-brand text-cream px-6 py-2.5 rounded-lg font-medium text-sm
+           hover:bg-brand-mid transition-colors duration-150 inline-block;
   }
   .btn-outline {
     @apply border border-brand text-brand px-6 py-2.5 rounded-lg font-medium text-sm
-           hover:bg-brand hover:text-white transition-colors duration-150 inline-block;
+           hover:bg-brand hover:text-cream transition-colors duration-150 inline-block;
+  }
+  .btn-accent {
+    @apply bg-accent text-brand px-6 py-2.5 rounded-lg font-medium text-sm
+           hover:opacity-90 transition-opacity duration-150 inline-block;
   }
   .card {
-    @apply bg-white border border-gray-200 rounded-xl p-6 shadow-sm;
+    @apply bg-cream-card border border-mauve rounded-xl p-6 shadow-sm;
   }
 }

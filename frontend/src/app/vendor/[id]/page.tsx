@@ -34,22 +34,22 @@ export default async function VendorStatusPage({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold text-brand">{vendor.business_name}</h2>
-            <p className="text-sm text-gray-500">{vendor.email}</p>
+            <p className="text-sm text-brand-muted">{vendor.email}</p>
           </div>
           <StatusBadge status={vendor.onboarding_status} />
         </div>
-        <hr className="border-gray-100" />
+        <hr className="border-mauve" />
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-gray-500 text-xs mb-1">Charges enabled</p>
-            <p className="font-semibold">{vendor.charges_enabled ? "Yes" : "No"}</p>
+          <div className="bg-cream-blush rounded-lg p-3">
+            <p className="text-brand-muted text-xs mb-1">Charges enabled</p>
+            <p className="font-semibold text-brand">{vendor.charges_enabled ? "Yes" : "No"}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-gray-500 text-xs mb-1">Payouts enabled</p>
-            <p className="font-semibold">{vendor.payouts_enabled ? "Yes" : "No"}</p>
+          <div className="bg-cream-blush rounded-lg p-3">
+            <p className="text-brand-muted text-xs mb-1">Payouts enabled</p>
+            <p className="font-semibold text-brand">{vendor.payouts_enabled ? "Yes" : "No"}</p>
           </div>
         </div>
-        <Link href="/" className="text-sm text-gray-400 hover:text-brand block pt-2">
+        <Link href="/" className="text-sm text-brand-muted hover:text-brand block pt-2">
           ← Back to home
         </Link>
       </div>

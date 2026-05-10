@@ -25,12 +25,12 @@ export default function RegisterPage() {
   return (
     <div className="max-w-md mx-auto py-10">
       <h1 className="text-3xl font-bold text-brand mb-2">Become a Vendor</h1>
-      <p className="text-gray-500 mb-8 text-sm">
+      <p className="text-brand-muted mb-8 text-sm">
         Register your business and connect your bank account via Stripe.
       </p>
       <form onSubmit={handleSubmit} className="card space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-brand mb-1">
             Business Name
           </label>
           <input
@@ -38,13 +38,13 @@ export default function RegisterPage() {
             required
             value={form.business_name}
             onChange={(e) => setForm({ ...form, business_name: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+            className="w-full border border-mauve rounded-lg px-3 py-2 text-sm text-brand
+                       focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent bg-cream"
             placeholder="Acme Corp"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-brand mb-1">
             Email Address
           </label>
           <input
@@ -52,8 +52,8 @@ export default function RegisterPage() {
             required
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+            className="w-full border border-mauve rounded-lg px-3 py-2 text-sm text-brand
+                       focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent bg-cream"
             placeholder="you@example.com"
           />
         </div>

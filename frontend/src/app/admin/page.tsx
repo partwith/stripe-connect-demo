@@ -37,7 +37,7 @@ export default async function AdminPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-brand">Admin Portal</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-brand-muted text-sm mt-1">
             {data.total} vendor{data.total !== 1 ? "s" : ""} total
           </p>
         </div>
@@ -50,14 +50,14 @@ export default async function AdminPage() {
         {(["complete", "in_progress", "pending", "restricted"] as const).map((s) => (
           <div key={s} className="card text-center">
             <p className="text-3xl font-bold text-brand">{statusGroups[s].length}</p>
-            <p className="text-xs text-gray-500 mt-1 capitalize">{s.replace("_", " ")}</p>
+            <p className="text-xs text-brand-muted mt-1 capitalize">{s.replace("_", " ")}</p>
           </div>
         ))}
       </div>
 
       {data.vendors.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-gray-400">No vendors yet.</p>
+          <p className="text-brand-muted">No vendors yet.</p>
           <Link href="/vendor/register" className="btn-primary mt-4 inline-block">
             Onboard first vendor
           </Link>

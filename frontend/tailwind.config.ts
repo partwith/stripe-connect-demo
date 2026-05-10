@@ -6,10 +6,21 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#1C0A0A",
-          light: "#3D1515",
-          muted: "#6B3030",
+          DEFAULT: "#28030F",
+          light: "#5B3E47",
+          mid: "#4C2934",
+          muted: "#755760",
         },
+        cream: {
+          DEFAULT: "#FCFAF8",
+          card: "#F9F4F1",
+          blush: "#F4E7DD",
+        },
+        mauve: {
+          DEFAULT: "#D4C4C9",
+          dark: "#C39DA8",
+        },
+        accent: "#FBF582",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

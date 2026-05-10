@@ -6,7 +6,7 @@ export default function HomePage() {
       <h1 className="text-5xl font-bold text-brand mb-6 tracking-tight">
         Stripe Connect Demo
       </h1>
-      <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed">
+      <p className="text-xl text-brand-muted max-w-2xl mx-auto mb-12 leading-relaxed">
         A live demo of Stripe Connect onboarding for vendors and an admin portal
         to manage their payment account status.
       </p>
@@ -35,7 +35,7 @@ export default function HomePage() {
         ].map((f) => (
           <div key={f.title} className="card">
             <h3 className="font-semibold text-brand mb-2">{f.title}</h3>
-            <p className="text-sm text-gray-500">{f.desc}</p>
+            <p className="text-sm text-brand-muted">{f.desc}</p>
           </div>
         ))}
       </div>

@@ -1,10 +1,10 @@
 type Status = "pending" | "in_progress" | "complete" | "restricted";
 
 const config: Record<Status, { label: string; classes: string }> = {
-  pending: { label: "Pending", classes: "bg-gray-100 text-gray-600" },
-  in_progress: { label: "In Progress", classes: "bg-yellow-100 text-yellow-700" },
-  complete: { label: "Complete", classes: "bg-green-100 text-green-700" },
-  restricted: { label: "Restricted", classes: "bg-red-100 text-red-700" },
+  pending: { label: "Pending", classes: "bg-mauve text-brand-mid" },
+  in_progress: { label: "In Progress", classes: "bg-accent text-brand" },
+  complete: { label: "Complete", classes: "bg-green-100 text-green-800" },
+  restricted: { label: "Restricted", classes: "bg-cream-blush text-brand" },
 };
 
 export default function StatusBadge({ status }: { status: string }) {

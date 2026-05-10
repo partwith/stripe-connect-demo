@@ -33,13 +33,13 @@ export default function VendorDetailPage() {
   }
 
   if (error) return <p className="text-red-600 py-10 text-center">{error}</p>;
-  if (!vendor) return <p className="text-gray-400 py-10 text-center">Loading…</p>;
+  if (!vendor) return <p className="text-brand-muted py-10 text-center">Loading…</p>;
 
   return (
     <div className="max-w-xl mx-auto py-10">
       <Link
         href="/admin"
-        className="text-sm text-gray-400 hover:text-brand mb-6 inline-block"
+        className="text-sm text-brand-muted hover:text-brand mb-6 inline-block"
       >
         ← Back to Admin
       </Link>
@@ -47,11 +47,11 @@ export default function VendorDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-brand">{vendor.business_name}</h1>
-            <p className="text-sm text-gray-500">{vendor.email}</p>
+            <p className="text-sm text-brand-muted">{vendor.email}</p>
           </div>
           <StatusBadge status={vendor.onboarding_status} />
         </div>
-        <hr className="border-gray-100" />
+        <hr className="border-mauve" />
         <div className="grid grid-cols-2 gap-3 text-sm">
           {[
             { label: "Stripe Account", value: vendor.stripe_account_id ?? "—" },
@@ -76,9 +76,9 @@ export default function VendorDetailPage() {
               value: new Date(vendor.updated_at).toLocaleString(),
             },
           ].map(({ label, value }) => (
-            <div key={label} className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500 text-xs mb-1">{label}</p>
-              <p className="font-medium text-gray-800 text-sm truncate">{value}</p>
+            <div key={label} className="bg-cream-blush rounded-lg p-3">
+              <p className="text-brand-muted text-xs mb-1">{label}</p>
+              <p className="font-medium text-brand text-sm truncate">{value}</p>
             </div>
           ))}
         </div>
