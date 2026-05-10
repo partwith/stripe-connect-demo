@@ -37,6 +37,7 @@ def client():
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
+    app.dependency_overrides.clear()
 
 
 def _mock_stripe_customer(cus_id: str = "cus_test123") -> MagicMock:
@@ -71,7 +72,11 @@ def test_create_subscription_basic(client):
     assert "idempotency_key" in data
     assert data["idempotency_key"] != ""
     mock_cus.assert_called_once_with(email="user@example.com")
-    mock_pi.assert_called_once()
+    mock_pi.assert_called_once_with(
+        stripe_customer_id="cus_test123",
+        amount_cents=1000,
+        idempotency_key=data["idempotency_key"],
+    )
 
 
 def test_create_subscription_standard(client):
