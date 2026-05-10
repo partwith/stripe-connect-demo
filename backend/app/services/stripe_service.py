@@ -44,7 +44,7 @@ def create_destination_charge(
 ) -> stripe.PaymentIntent:
     return stripe.PaymentIntent.create(
         amount=amount,
-        currency="usd",
+        currency="aud",
         payment_method_types=["card"],
         application_fee_amount=application_fee_amount,
         transfer_data={"destination": destination_account},
@@ -65,7 +65,7 @@ def charge_subscription(
 ) -> stripe.PaymentIntent:
     return stripe.PaymentIntent.create(
         amount=amount_cents,
-        currency="usd",
+        currency="aud",
         customer=stripe_customer_id,
         payment_method="pm_card_visa",
         payment_method_types=["card"],
