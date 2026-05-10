@@ -5,21 +5,33 @@ builder = "dockerfile"
 name = "api"
 source = { rootDir = "backend" }
 
-[services.deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
-healthcheckPath = "/health"
-healthcheckTimeout = 30
+  [services.build]
+  builder = "dockerfile"
+
+  [services.deploy]
+  startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+  healthcheckPath = "/health"
+  healthcheckTimeout = 30
 
 [[services]]
 name = "worker"
 source = { rootDir = "backend" }
 
-[services.deploy]
-startCommand = "celery -A celery_worker.celery_app worker --loglevel=info -c 2"
+  [services.build]
+  builder = "dockerfile"
+
+  [services.deploy]
+  startCommand = "celery -A celery_worker.celery_app worker --loglevel=info -c 2"
 
 [[services]]
 name = "web"
 source = { rootDir = "frontend" }
 
-[services.deploy]
-startCommand = "node server.js"
+  [services.build]
+  builder = "dockerfile"
+  # NEXT_PUBLIC_* vars must be set as Railway build variables on the web service
+  # so they are available during `npm run build` inside Docker.
+  # Set NEXT_PUBLIC_API_URL and NEXT_PUBLIC_ADMIN_KEY in Railway dashboard → web → Variables
+
+  [services.deploy]
+  startCommand = "node server.js"

@@ -30,11 +30,19 @@ ADMIN_API_KEY=<your-secure-key>
 FRONTEND_URL=https://<web-railway-domain>.railway.app
 ```
 
-**On `web` service:**
+**On `web` service — IMPORTANT: set these as build variables, not just runtime vars.**
+Next.js embeds `NEXT_PUBLIC_*` values at build time (`npm run build`). They must be
+present when Railway builds the Docker image, not only when the container starts.
+
+In Railway dashboard → `web` service → **Variables** → add:
 ```
 NEXT_PUBLIC_API_URL=https://<api-railway-domain>.railway.app
 NEXT_PUBLIC_ADMIN_KEY=<same-as-ADMIN_API_KEY>
 ```
+
+Then in **Settings → Build** for the `web` service, confirm that environment variables
+are passed through to the Docker build (Railway does this automatically when you set
+them as service variables before the first deploy).
 
 ### 4. Run Database Migration
 

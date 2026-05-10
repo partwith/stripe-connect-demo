@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models.vendor import OnboardingStatus, Vendor
 from app.schemas.vendor import VendorCreate, VendorOnboardResponse, VendorResponse
@@ -38,10 +39,9 @@ def create_onboard_link(vendor_id: UUID, request: Request, db: Session = Depends
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found.")
 
-    base = str(request.base_url).rstrip("/")
-    frontend_base = base.replace(":8000", ":3000").replace(":8001", ":3000")
-    return_url = f"{frontend_base}/return?vendor_id={vendor_id}"
-    refresh_url = f"{base}/api/vendors/{vendor_id}/onboard"
+    api_base = str(request.base_url).rstrip("/")
+    return_url = f"{settings.frontend_url}/return?vendor_id={vendor_id}"
+    refresh_url = f"{api_base}/api/vendors/{vendor_id}/onboard"
 
     url = stripe_service.create_account_link(
         account_id=vendor.stripe_account_id,
