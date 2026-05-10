@@ -73,3 +73,25 @@ export async function listOrders(vendorId: string): Promise<OrderListResponse> {
   if (!res.ok) throw new Error("Failed to load orders");
   return res.json();
 }
+
+export async function createSubscription(data: { email: string; plan_tier: string }): Promise<import("./types").Subscription> {
+  const res = await fetch(`${API_BASE}/api/subscriptions/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Subscription failed" }));
+    throw new Error(err.detail ?? "Subscription failed");
+  }
+  return res.json();
+}
+
+export async function listAdminSubscriptions(): Promise<import("./types").SubscriptionListResponse> {
+  const res = await fetch(`${API_BASE}/api/admin/subscriptions`, {
+    headers: { "X-Admin-Key": ADMIN_KEY },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to load subscriptions");
+  return res.json();
+}
