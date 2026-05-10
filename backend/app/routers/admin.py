@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models.order import Order, OrderStatus
+from app.models.subscription import Subscription
 from app.models.vendor import OnboardingStatus, Vendor
 from app.schemas.order import ChargeCreate, OrderListResponse, OrderResponse
+from app.schemas.subscription import SubscriptionListResponse
 from app.schemas.vendor import VendorListResponse, VendorResponse
 from app.services import stripe_service
 
@@ -112,3 +114,9 @@ def list_orders(vendor_id: str, db: Session = Depends(get_db)):
         .all()
     )
     return {"orders": orders, "total": len(orders)}
+
+
+@router.get("/subscriptions", response_model=SubscriptionListResponse, dependencies=[Depends(require_admin)])
+def list_subscriptions(db: Session = Depends(get_db)):
+    subs = db.query(Subscription).order_by(Subscription.created_at.desc()).all()
+    return {"subscriptions": subs, "total": len(subs)}
