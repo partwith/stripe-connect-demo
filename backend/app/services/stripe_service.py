@@ -34,3 +34,21 @@ def construct_webhook_event(payload: bytes, sig_header: str) -> stripe.Event:
     return stripe.Webhook.construct_event(
         payload, sig_header, settings.stripe_webhook_secret
     )
+
+
+def create_destination_charge(
+    amount: int,
+    application_fee_amount: int,
+    destination_account: str,
+    idempotency_key: str,
+) -> stripe.PaymentIntent:
+    return stripe.PaymentIntent.create(
+        amount=amount,
+        currency="usd",
+        payment_method_types=["card"],
+        application_fee_amount=application_fee_amount,
+        transfer_data={"destination": destination_account},
+        confirm=True,
+        payment_method="pm_card_visa",
+        idempotency_key=idempotency_key,
+    )
