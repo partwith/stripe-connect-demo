@@ -15,6 +15,7 @@ build/
 .pytest_cache/
 
 # Node
+frontend/README.md
 frontend/node_modules/
 frontend/.next/
 frontend/out/
