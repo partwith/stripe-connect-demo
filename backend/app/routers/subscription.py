@@ -27,25 +27,25 @@ def create_subscription(body: SubscriptionCreate, db: Session = Depends(get_db))
     expires_at = starts_at + timedelta(days=365)
     next_charge_due_at = expires_at - timedelta(days=3)
 
-    customer = stripe_service.create_stripe_customer(email=body.email)
-
-    sub = Subscription(
-        email=body.email,
-        stripe_customer_id=customer.id,
-        plan_tier=tier,
-        plan_amount_cents=config["amount_cents"],
-        ai_prompt_usage_limit=config["ai_prompt_usage_limit"],
-        ai_prompt_usage_used=0,
-        status=SubscriptionStatus.ACTIVE,
-        idempotency_key=idempotency_key,
-        starts_at=starts_at,
-        expires_at=expires_at,
-        next_charge_due_at=next_charge_due_at,
-    )
-    db.add(sub)
-    db.flush()
-
     try:
+        customer = stripe_service.create_stripe_customer(email=body.email)
+
+        sub = Subscription(
+            email=body.email,
+            stripe_customer_id=customer.id,
+            plan_tier=tier,
+            plan_amount_cents=config["amount_cents"],
+            ai_prompt_usage_limit=config["ai_prompt_usage_limit"],
+            ai_prompt_usage_used=0,
+            status=SubscriptionStatus.ACTIVE,
+            idempotency_key=idempotency_key,
+            starts_at=starts_at,
+            expires_at=expires_at,
+            next_charge_due_at=next_charge_due_at,
+        )
+        db.add(sub)
+        db.flush()
+
         pi = stripe_service.charge_subscription(
             stripe_customer_id=customer.id,
             amount_cents=config["amount_cents"],
