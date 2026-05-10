@@ -1,4 +1,4 @@
-import type { Vendor, VendorPublic, VendorListResponse } from "./types";
+import type { Vendor, VendorPublic, VendorListResponse, Order, OrderListResponse } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY ?? "demo-admin-key-change-me";
@@ -50,5 +50,26 @@ export async function syncVendorStatus(vendorId: string): Promise<Vendor> {
     headers: { "X-Admin-Key": ADMIN_KEY },
   });
   if (!res.ok) throw new Error("Sync failed");
+  return res.json();
+}
+
+export async function createCharge(vendorId: string, amountCents: number): Promise<Order> {
+  const res = await fetch(`${API_BASE}/api/admin/vendors/${vendorId}/charge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Admin-Key": ADMIN_KEY },
+    body: JSON.stringify({ amount: amountCents }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Charge failed" }));
+    throw new Error(err.detail ?? "Charge failed");
+  }
+  return res.json();
+}
+
+export async function listOrders(vendorId: string): Promise<OrderListResponse> {
+  const res = await fetch(`${API_BASE}/api/admin/vendors/${vendorId}/orders`, {
+    headers: { "X-Admin-Key": ADMIN_KEY },
+  });
+  if (!res.ok) throw new Error("Failed to load orders");
   return res.json();
 }

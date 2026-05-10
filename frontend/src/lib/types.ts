@@ -18,3 +18,22 @@ export interface VendorListResponse {
   vendors: Vendor[];
   total: number;
 }
+
+export type OrderStatus = "pending" | "processing" | "paid" | "failed";
+
+export interface Order {
+  id: string;
+  vendor_id: string;
+  amount: number;
+  application_fee_amount: number;
+  idempotency_key: string;
+  status: OrderStatus;
+  stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderListResponse {
+  orders: Order[];
+  total: number;
+}
