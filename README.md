@@ -1,6 +1,6 @@
 # Stripe Connect Demo
 
-A demo application showing Stripe Connect vendor onboarding and an admin review portal, built with FastAPI + Next.js and deployable to Railway.
+A demo application showing Stripe Connect vendor onboarding, destination charges, and annual subscription plans — built with FastAPI + Next.js and deployable to Railway.
 
 ![Landing page](docs/screenshot-landing.png)
 
@@ -8,7 +8,9 @@ A demo application showing Stripe Connect vendor onboarding and an admin review 
 
 - **Vendor onboarding** — vendors register with their business name and email, then complete Stripe's hosted Express account onboarding (identity, bank account, etc.)
 - **Webhook sync** — Stripe sends `account.updated` events that automatically update each vendor's onboarding status
-- **Admin portal** — admins view all vendors, their Stripe account status (`charges_enabled`, `payouts_enabled`), and can manually trigger a status sync
+- **Destination charges** — admin portal can create charges routed to a vendor's Stripe account, with a 10% platform application fee
+- **Subscription plans** — customers purchase annual plans ($10 / $40 / $100) with AI prompt usage quotas; Stripe stores the `cus_` token for future billing, charges use idempotency keys, and the next renewal is due 3 days before expiry
+- **Admin portal** — two sections: Stripe Connect vendor management and subscription customer overview (plan, usage left, expiry, next charge date)
 
 ## Tech stack
 
@@ -18,8 +20,24 @@ A demo application showing Stripe Connect vendor onboarding and an admin review 
 | Async worker | Celery 5, Redis |
 | Database | PostgreSQL |
 | Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS |
-| Payments | Stripe Connect (Express accounts) |
+| Payments | Stripe Connect (Express accounts), Stripe Customers + PaymentIntents |
 | Deployment | Railway (multi-service) |
+
+---
+
+## Screenshots
+
+### Homepage — Subscription Plans
+
+![Landing page](docs/screenshot-landing.png)
+
+### Subscribe Checkout
+
+![Subscribe checkout](docs/screenshot-subscribe.png)
+
+### Admin Portal
+
+![Admin portal](docs/screenshot-admin.png)
 
 ---
 
@@ -39,37 +57,41 @@ A demo application showing Stripe Connect vendor onboarding and an admin review 
 ```bash
 git clone git@github.com:partwith/stripe-connect-demo.git
 cd stripe-connect-demo
-cp .env.example .env
-```
-
-Edit `.env` with your values:
-
-```env
-# Get from https://dashboard.stripe.com/test/apikeys
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# Filled in step 4 after running stripe listen
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# PostgreSQL — create database first: createdb stripe_demo
-DATABASE_URL=postgresql://youruser@localhost:5432/stripe_demo
-
-# Redis
-REDIS_URL=redis://localhost:6379/0
-
-# App
-FRONTEND_URL=http://localhost:3000
-ADMIN_API_KEY=demo-admin-key-change-me
 ```
 
 ### 2. Backend setup
 
 ```bash
 cd backend
+cp .env.example .env
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+Edit `backend/.env` with your values:
+
+```env
+# From https://dashboard.stripe.com/test/apikeys
+STRIPE_SECRET_KEY=sk_test_...
+
+# From `stripe listen` output in step 3
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# From https://dashboard.stripe.com/test/apikeys (used by frontend)
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# Create the DB first: createdb stripe_demo
+DATABASE_URL=postgresql://youruser@localhost:5432/stripe_demo
+
+# Redis connection (default works if Redis is running locally)
+REDIS_URL=redis://localhost:6379/0
+
+# URL the backend uses for CORS — leave as-is for local dev
+FRONTEND_URL=http://localhost:3000
+
+# Secret header value required by all /api/admin/* endpoints
+ADMIN_API_KEY=demo-admin-key-change-me
 ```
 
 Create the database and run migrations:
@@ -127,6 +149,16 @@ celery -A celery_worker.celery_app worker --loglevel=info
 
 ## Usage
 
+### Subscription flow
+
+1. Go to **http://localhost:3000** and scroll to **Subscription Plans**
+2. Choose a plan — Basic ($10 / 100 prompts), Standard ($40 / 500 prompts), or Premium ($100 / 2 000 prompts)
+3. Enter your email and click **Subscribe** — the backend creates a Stripe Customer (`cus_…`), charges the test card with an idempotency key, and stores the subscription
+4. You're redirected to a confirmation page with your subscription ID
+5. In the **Admin Portal** → **Subscription Customers** section you can see the plan, prompts remaining, expiry date (1 year), and next charge due date (3 days before expiry)
+
+> **Billing logic:** `expires_at = starts_at + 365 days`, `next_charge_due_at = expires_at − 3 days`. The Stripe Customer token is persisted so future renewals can be charged off-session.
+
 ### Vendor onboarding flow
 
 1. Go to **http://localhost:3000/vendor/register**
@@ -141,15 +173,17 @@ For Stripe test onboarding, use:
 - Any future date for DOB
 - ABN (Australian Business Number): `51824753556` (or `83914571673`)
 
-Stripe validates ABN format in test mode but does not verify against the ABR, so any valid-format ABN works.
-
 ### Admin portal
 
 Go to **http://localhost:3000/admin**
 
+**Section 1 — Stripe Connect Vendors:**
 - See all vendors with their onboarding status
-- Click any vendor to view full Stripe account details
+- Click any vendor to view full Stripe account details and create destination charges
 - Click **Sync Stripe Status** to pull the latest data from Stripe on demand
+
+**Section 2 — Subscription Customers:**
+- See all subscribers with their plan tier, AI prompts remaining, expiry date, next charge due date, and status badge
 
 Admin API key defaults to `demo-admin-key-change-me` (set via `ADMIN_API_KEY` env var).
 
@@ -167,6 +201,12 @@ All endpoints are served from the FastAPI backend (`http://localhost:8000`).
 | `POST` | `/api/vendors/{id}/onboard` | Generate a Stripe account link URL |
 | `GET` | `/api/vendors/{id}` | Get vendor status |
 
+### Subscription endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/subscriptions/` | Purchase a subscription plan (creates Stripe Customer + charges) |
+
 ### Admin endpoints (requires `X-Admin-Key` header)
 
 | Method | Path | Description |
@@ -174,12 +214,15 @@ All endpoints are served from the FastAPI backend (`http://localhost:8000`).
 | `GET` | `/api/admin/vendors` | List all vendors |
 | `GET` | `/api/admin/vendors/{id}` | Get vendor detail |
 | `POST` | `/api/admin/vendors/{id}/sync` | Pull latest status from Stripe |
+| `POST` | `/api/admin/vendors/{id}/charge` | Create a destination charge to a vendor |
+| `GET` | `/api/admin/vendors/{id}/orders` | List orders for a vendor |
+| `GET` | `/api/admin/subscriptions` | List all subscription customers |
 
 ### Webhooks
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/api/webhooks/stripe` | Stripe webhook receiver (`account.updated`) |
+| `POST` | `/api/webhooks/stripe` | Stripe webhook receiver (`account.updated`, `payment_intent.succeeded/failed`) |
 
 ---
 
@@ -188,15 +231,10 @@ All endpoints are served from the FastAPI backend (`http://localhost:8000`).
 ```bash
 cd backend
 source .venv/bin/activate
-
-DATABASE_URL=postgresql://youruser@localhost:5432/stripe_demo \
-STRIPE_SECRET_KEY=sk_test_placeholder \
-STRIPE_WEBHOOK_SECRET=whsec_placeholder \
-ADMIN_API_KEY=demo-admin-key-change-me \
 pytest tests/ -v
 ```
 
-22 tests covering vendor registration, onboarding, admin API, webhook handling, and Stripe service layer.
+41 tests covering vendor registration, onboarding, admin API, webhook handling, destination charges, subscription creation (all tiers), billing date logic, idempotency, Stripe failure rollback, and the Stripe service layer.
 
 ---
 
@@ -224,9 +262,9 @@ stripe-connect-demo/
 │   │   ├── main.py           # FastAPI app
 │   │   ├── config.py         # Environment config
 │   │   ├── database.py       # SQLAlchemy setup
-│   │   ├── models/           # Vendor model
+│   │   ├── models/           # Vendor, Order, Subscription models
 │   │   ├── schemas/          # Pydantic schemas
-│   │   ├── routers/          # vendor, admin, webhook
+│   │   ├── routers/          # vendor, admin, webhook, subscription
 │   │   ├── services/         # Stripe SDK wrapper
 │   │   └── tasks/            # Celery tasks
 │   ├── celery_worker.py
@@ -235,12 +273,15 @@ stripe-connect-demo/
 ├── frontend/
 │   └── src/
 │       ├── app/              # Next.js pages
-│       │   ├── page.tsx              # Landing
+│       │   ├── page.tsx              # Landing + subscription plans
 │       │   ├── vendor/register/      # Vendor registration
 │       │   ├── return/               # Post-Stripe return
-│       │   └── admin/                # Admin portal
+│       │   ├── subscribe/[tier]/     # Subscription checkout
+│       │   ├── subscribe/confirm/    # Subscription confirmation
+│       │   └── admin/                # Admin portal (vendors + subscriptions)
 │       ├── components/       # Nav, StatusBadge, VendorCard
 │       └── lib/              # API client, TypeScript types
+├── docs/                     # Screenshots
 ├── railway.toml              # Railway deployment config
 └── RAILWAY_SETUP.md          # Deployment guide
 ```
