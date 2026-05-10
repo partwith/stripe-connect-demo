@@ -137,7 +137,7 @@ celery -A celery_worker.celery_app worker --loglevel=info
 
 For Stripe test onboarding, use:
 - Routing number: `110000000`
-- Account number: `000123456789`
+- Account number: `000123456`
 - Any future date for DOB
 - ABN (Australian Business Number): `51824753556` (or `83914571673`)
 
