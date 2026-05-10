@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.order import Order, OrderStatus
 from app.models.vendor import OnboardingStatus, Vendor
 from app.services import stripe_service
 
@@ -33,6 +34,26 @@ async def stripe_webhook(
                 vendor.onboarding_status = OnboardingStatus.IN_PROGRESS
             else:
                 vendor.onboarding_status = OnboardingStatus.RESTRICTED
+            db.commit()
+
+    elif event.type == "payment_intent.succeeded":
+        pi = event.data.object
+        order = db.query(Order).filter(
+            Order.stripe_payment_intent_id == pi.id,
+            Order.status != OrderStatus.PAID,
+        ).first()
+        if order:
+            order.status = OrderStatus.PAID
+            db.commit()
+
+    elif event.type == "payment_intent.payment_failed":
+        pi = event.data.object
+        order = db.query(Order).filter(
+            Order.stripe_payment_intent_id == pi.id,
+            Order.status != OrderStatus.PAID,
+        ).first()
+        if order:
+            order.status = OrderStatus.FAILED
             db.commit()
 
     return {"received": True}
