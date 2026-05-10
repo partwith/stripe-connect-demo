@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.database import Base, get_db
 from app.models.vendor import Vendor, OnboardingStatus
+from app.models.order import Order, OrderStatus
 from app.config import settings
 
 TEST_DB_URL = "sqlite:///./test_admin.db"
@@ -117,3 +118,101 @@ def test_get_vendor_not_found(client):
         headers={"X-Admin-Key": ADMIN_KEY},
     )
     assert resp.status_code == 404
+
+
+def test_create_charge_success(client, seeded_vendor):
+    mock_pi = MagicMock()
+    mock_pi.id = "pi_test_success"
+    with patch("app.routers.admin.stripe_service.create_destination_charge", return_value=mock_pi):
+        resp = client.post(
+            f"/api/admin/vendors/{seeded_vendor.id}/charge",
+            json={"amount": 10000},
+            headers={"X-Admin-Key": ADMIN_KEY},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["amount"] == 10000
+    assert data["application_fee_amount"] == 1000
+    assert data["status"] == "processing"
+    assert data["stripe_payment_intent_id"] == "pi_test_success"
+    assert "idempotency_key" in data
+
+
+def test_create_charge_requires_admin_key(client, seeded_vendor):
+    resp = client.post(
+        f"/api/admin/vendors/{seeded_vendor.id}/charge",
+        json={"amount": 5000},
+    )
+    assert resp.status_code == 401
+
+
+def test_create_charge_vendor_not_found(client):
+    resp = client.post(
+        f"/api/admin/vendors/{uuid.uuid4()}/charge",
+        json={"amount": 5000},
+        headers={"X-Admin-Key": ADMIN_KEY},
+    )
+    assert resp.status_code == 404
+
+
+def test_create_charge_vendor_not_charges_enabled(client):
+    db = TestingSessionLocal()
+    vendor = Vendor(
+        id=str(uuid.uuid4()),
+        business_name="No Charges Corp",
+        email="nocharge@example.com",
+        stripe_account_id="acct_nopay",
+        onboarding_status=OnboardingStatus.IN_PROGRESS,
+        charges_enabled=False,
+    )
+    db.add(vendor)
+    db.commit()
+    db.refresh(vendor)
+    vendor_id = vendor.id
+    db.close()
+
+    resp = client.post(
+        f"/api/admin/vendors/{vendor_id}/charge",
+        json={"amount": 5000},
+        headers={"X-Admin-Key": ADMIN_KEY},
+    )
+    assert resp.status_code == 400
+
+
+def test_create_charge_stripe_failure_marks_failed(client, seeded_vendor):
+    with patch(
+        "app.routers.admin.stripe_service.create_destination_charge",
+        side_effect=Exception("card_declined"),
+    ):
+        resp = client.post(
+            f"/api/admin/vendors/{seeded_vendor.id}/charge",
+            json={"amount": 5000},
+            headers={"X-Admin-Key": ADMIN_KEY},
+        )
+    assert resp.status_code == 400
+
+    db = TestingSessionLocal()
+    orders = db.query(Order).filter_by(vendor_id=seeded_vendor.id).all()
+    assert len(orders) == 1
+    assert orders[0].status == OrderStatus.FAILED
+    db.close()
+
+
+def test_list_orders(client, seeded_vendor):
+    mock_pi = MagicMock()
+    mock_pi.id = "pi_list_test"
+    with patch("app.routers.admin.stripe_service.create_destination_charge", return_value=mock_pi):
+        client.post(
+            f"/api/admin/vendors/{seeded_vendor.id}/charge",
+            json={"amount": 2000},
+            headers={"X-Admin-Key": ADMIN_KEY},
+        )
+
+    resp = client.get(
+        f"/api/admin/vendors/{seeded_vendor.id}/orders",
+        headers={"X-Admin-Key": ADMIN_KEY},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["orders"][0]["amount"] == 2000
