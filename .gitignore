@@ -3,6 +3,7 @@
 *.env.local
 
 # Python
+backend/*.db
 backend/.venv/
 __pycache__/
 *.pyc
