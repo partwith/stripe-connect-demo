@@ -7,6 +7,7 @@ from alembic import context
 from app.database import Base
 import app.models.vendor  # noqa: F401 — registers model with metadata
 import app.models.order   # noqa: F401 — registers model with metadata
+import app.models.subscription  # noqa: F401 — registers model with metadata
 
 config = context.config
 fileConfig(config.config_file_name)
