@@ -52,3 +52,24 @@ def create_destination_charge(
         payment_method="pm_card_visa",
         idempotency_key=idempotency_key,
     )
+
+
+def create_stripe_customer(email: str) -> stripe.Customer:
+    return stripe.Customer.create(email=email)
+
+
+def charge_subscription(
+    stripe_customer_id: str,
+    amount_cents: int,
+    idempotency_key: str,
+) -> stripe.PaymentIntent:
+    return stripe.PaymentIntent.create(
+        amount=amount_cents,
+        currency="usd",
+        customer=stripe_customer_id,
+        payment_method="pm_card_visa",
+        payment_method_types=["card"],
+        confirm=True,
+        setup_future_usage="off_session",
+        idempotency_key=idempotency_key,
+    )
