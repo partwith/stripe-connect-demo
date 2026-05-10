@@ -1,0 +1,25 @@
+[build]
+builder = "dockerfile"
+
+[[services]]
+name = "api"
+source = { rootDir = "backend" }
+
+[services.deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+
+[[services]]
+name = "worker"
+source = { rootDir = "backend" }
+
+[services.deploy]
+startCommand = "celery -A celery_worker.celery_app worker --loglevel=info -c 2"
+
+[[services]]
+name = "web"
+source = { rootDir = "frontend" }
+
+[services.deploy]
+startCommand = "node server.js"
