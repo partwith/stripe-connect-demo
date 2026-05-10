@@ -1,6 +1,10 @@
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def _utcnow():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, String
 
@@ -29,7 +33,5 @@ class Vendor(Base):
     charges_enabled = Column(Boolean, default=False, nullable=False)
     payouts_enabled = Column(Boolean, default=False, nullable=False)
     details_submitted = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    created_at = Column(DateTime, default=_utcnow, nullable=False)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow, nullable=False)
