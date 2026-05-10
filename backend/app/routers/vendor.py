@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models.vendor import OnboardingStatus, Vendor
-from app.schemas.vendor import VendorCreate, VendorOnboardResponse, VendorResponse
+from app.schemas.vendor import VendorCreate, VendorOnboardResponse, VendorPublicResponse, VendorResponse
 from app.services import stripe_service
 
 router = APIRouter()
@@ -53,7 +53,7 @@ def create_onboard_link(vendor_id: UUID, request: Request, db: Session = Depends
     return {"onboarding_url": url}
 
 
-@router.get("/{vendor_id}", response_model=VendorResponse)
+@router.get("/{vendor_id}", response_model=VendorPublicResponse)
 def get_vendor(vendor_id: UUID, db: Session = Depends(get_db)):
     vendor = db.get(Vendor, str(vendor_id))
     if not vendor:

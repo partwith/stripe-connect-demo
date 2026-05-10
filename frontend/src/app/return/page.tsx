@@ -5,12 +5,12 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getVendor } from "@/lib/api";
 import StatusBadge from "@/components/status-badge";
-import type { Vendor } from "@/lib/types";
+import type { VendorPublic } from "@/lib/types";
 
 function ReturnContent() {
   const params = useSearchParams();
   const vendorId = params.get("vendor_id");
-  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [vendor, setVendor] = useState<VendorPublic | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {

@@ -1,8 +1,8 @@
-import type { Vendor } from "@/lib/types";
+import type { VendorPublic } from "@/lib/types";
 import StatusBadge from "@/components/status-badge";
 import Link from "next/link";
 
-async function getVendorServer(id: string): Promise<Vendor> {
+async function getVendorServer(id: string): Promise<VendorPublic> {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
   const res = await fetch(`${apiBase}/api/vendors/${id}`, { cache: "no-store" });
   if (!res.ok) throw new Error("Vendor not found");
@@ -14,7 +14,7 @@ export default async function VendorStatusPage({
 }: {
   params: { id: string };
 }) {
-  let vendor: Vendor;
+  let vendor: VendorPublic;
   try {
     vendor = await getVendorServer(params.id);
   } catch {
