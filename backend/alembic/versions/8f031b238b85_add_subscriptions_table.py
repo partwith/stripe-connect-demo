@@ -51,3 +51,5 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_subscriptions_email'), table_name='subscriptions')
     op.drop_table('subscriptions')
     # ### end Alembic commands ###
+    sa.Enum(name='subscriptiontier').drop(op.get_bind(), checkfirst=True)
+    sa.Enum(name='subscriptionstatus').drop(op.get_bind(), checkfirst=True)
